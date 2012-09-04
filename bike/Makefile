@@ -11,7 +11,8 @@ PROJECT = bike
 
 
 MCU = attiny13a
-MAK_F_CPU = 9600000
+#MAK_F_CPU = 9600000
+MAK_F_CPU = 128000
 
 #MCU = attiny45
 #MAK_F_CPU = 8000000
@@ -24,8 +25,13 @@ else
 	MAK_STARTUPDELAY = 64
 endif
 
-MAK_BROWNOUT = 18
+#MAK_BROWNOUT = 18
+MAK_BROWNOUT = 0
 
+
+
+MAK_SELF_PROGRAM_ENABLE	= FALSE
+MAK_DEBUG_WIRE_ENABLE	= FALSE
 
 
 ## General Flags
@@ -41,7 +47,11 @@ COMMON = -mmcu=$(MCU)
 CFLAGS = $(COMMON)
 CFLAGS += -Wall -gdwarf-2 -Os -std=gnu99  -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 CFLAGS += -DF_CPU=$(MAK_F_CPU)UL -DCLOCKDIVIDE8=$(MAK_CLOCKDIVIDE8) -DSTARTUPDELAY=$(MAK_STARTUPDELAY) \
-	-DBROWNOUT=$(MAK_BROWNOUT) -MD -MP -MT $(*F).o -MF dep/$(@F).d -IC:/atmel/src/myUtils
+	-DBROWNOUT=$(MAK_BROWNOUT) -DMAK_SELF_PROGRAM_ENABLE=$(MAK_SELF_PROGRAM_ENABLE) \
+	-DMAK_DEBUG_WIRE_ENABLE=$(MAK_DEBUG_WIRE_ENABLE)
+CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d -IC:/atmel/src/myUtils
+
+
 
 ## Assembly specific flags
 ASMFLAGS = $(COMMON)

@@ -92,8 +92,8 @@ which are defined by the makefile
 	bit7	reserved	hardcode	1
 	bit6	reserved	hardcode	1
 	bit5	reserved	hardcode	1
-	bit4	SELFPRGEN	hardcode	1	//don't enable SPM instruction
-	bit3	DWEN		hardcode	1	//don't enable debugWire
+	bit4	SELFPRGEN	makefile	1	//don't enable SPM instruction
+	bit3	DWEN		makefile	1	//don't enable debugWire
 	bit2	BODLEVEL1	makefile	1
 	bit1	BODLEVEL0	makefile	0	//2l BOD threshold = 1.8 V
 	bit0	RSTDISBL	hardcode	1	//don't disable external reset (you'll loose the chip if you program this)
@@ -105,7 +105,29 @@ which are defined by the makefile
 	#define HFUSE5 (unsigned char)1
 	#define HFUSE4 (unsigned char)1
 	#define HFUSE3 (unsigned char)1
-
+	
+	#ifndef MAK_SELF_PROGRAM_ENABLE
+		#warning "MAK_SELF_PROGRAM_ENABLE isnt defined so using default value of FALSE"
+		#define HFUSE4 (unsigned char)1
+	#elif MAK_SELF_PROGRAM_ENABLE == FALSE
+		#define HFUSE4 (unsigned char)1
+	#elif MAK_SELF_PROGRAM_ENABLE == TRUE
+		#define HFUSE4 (unsigned char)0
+	#else
+		#error "fuses.h doesnt understand the value that MAK_SELF_PROGRAM_ENABLE is defined as"
+	#endif
+	
+	#ifndef MAK_DEBUG_WIRE_ENABLE
+		#warning "MAK_DEBUG_WIRE_ENABLE isnt defined so using default value of FALSE"
+		#define HFUSE3 (unsigned char)1
+	#elif MAK_DEBUG_WIRE_ENABLE == FALSE
+		#define HFUSE3 (unsigned char)1
+	#elif MAK_DEBUG_WIRE_ENABLE == TRUE
+		#define HFUSE3 (unsigned char)0
+	#else
+		#error "fuses.h doesnt understand the value that MAK_DEBUG_WIRE_ENABLE is defined as"
+	#endif
+	
 	#ifndef BROWNOUT
 		#warning "BROWNOUT isnt defined so using default value of 1.8 V"
 		#define HFUSE2 (unsigned char)1
