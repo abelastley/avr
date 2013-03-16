@@ -1,9 +1,45 @@
 @echo off
-echo ISPFREQ.BAT INFO: ispfreq.bat is starting
+echo %0 INFO: %0 is starting
 
+if defined stkexe (goto stkexe_is_defined) else (goto stkexe_not_defined)
+goto unknownerror
+
+
+:stkexe_not_defined
+if exist C:\PROGRA~1\Atmel\AVRTOO~1\STK500\stk500.exe set stkexe=C:\PROGRA~1\Atmel\AVRTOO~1\STK500\stk500.exe
+if exist C:\PROGRA~2\Atmel\AVRTOO~1\STK500\stk500.exe set stkexe=C:\PROGRA~2\Atmel\AVRTOO~1\STK500\stk500.exe
+if defined stkexe (goto stkexe_is_defined) else (goto stkexe_not_found_error)
+goto unknownerror
+
+
+:stkexe_is_defined
+echo stkexe is %stkexe%
 if "%1" == "set" goto SetFreq
 if "%1" == "get" goto GetFreq
 goto usage
+
+:SetFreq
+
+if "%2" == "" goto usage
+set NewFreq=%2
+rem C:\PROGRA~1\Atmel\AVRTOO~1\STK500\stk500.exe -cUSB -I%NewFreq%
+%stkexe% -cUSB -I%NewFreq%
+goto end
+
+:GetFreq
+
+rem C:\PROGRA~1\Atmel\AVRTOO~1\STK500\stk500.exe -cUSB -J
+%stkexe% -cUSB -J
+goto end
+
+
+:stkexe_not_found_error
+echo %0 ERROR: cannot find the application stk500.exe
+goto end
+
+:unknownerror
+echo %0 ERROR: there was an unknown error while programming the device
+goto end
 
 
 :usage
@@ -11,14 +47,14 @@ echo.
 echo.
 echo ***********************************************************************
 echo ********                                                       ********
-echo ********                 ispfreq.bat usage                     ********
+echo ********                 %0 usage                     ********
 echo ********                                                       ********
 echo ***********************************************************************
 echo.
 echo.
 echo ******** general usage is: ********
 echo.
-echo ispfreq.bat [get ^| set [new_freq_value]]
+echo %0 [get ^| set [new_freq_value]]
 echo.
 echo.
 echo ******** examples: ********
@@ -48,17 +84,5 @@ echo.
 echo.
 goto end
 
-:SetFreq
-
-if "%2" == "" goto usage
-set NewFreq=%2
-C:\PROGRA~1\Atmel\AVRTOO~1\STK500\stk500.exe -cUSB -I%NewFreq%
-goto end
-
-:GetFreq
-
-C:\PROGRA~1\Atmel\AVRTOO~1\STK500\stk500.exe -cUSB -J
-goto end
-
 :end
-echo ISPFREQ.BAT INFO: ispfreq.bat is finished
+echo %0 INFO: %0 is finished

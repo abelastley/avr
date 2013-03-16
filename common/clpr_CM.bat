@@ -6,7 +6,7 @@ rem new in 1.02 is:
 rem     name change from everything_common.bat to clpr_CM.bat
 rem     pass device type to program.bat so it won't complain
 
-echo CLPR_CM.BAT INFO: clpr_CM.bat is starting
+echo %0 INFO: %0 is starting
 
 if not "%1" == "" goto usage
 if /I not exist Makefile goto usage
@@ -28,15 +28,15 @@ echo.
 echo.
 echo ***********************************************************************
 echo ********                                                       ********
-echo ********               clpr_CM.bat.bat usage                   ********
+echo ********               %0.bat usage                   ********
 echo ********                                                       ********
 echo ***********************************************************************
 echo.
 echo.
 echo ******** description: ********
 echo.
-echo clpr_CM.bat will Complile your program, Link it, Program the target, and Run the 
-echo newly built program on the target.  clpr_CM.bat needs a makefile, from which it
+echo %0 will Complile your program, Link it, Program the target, and Run the 
+echo newly built program on the target.  %0 needs a makefile, from which it
 echo will get lots of info.  clpr.bat supports programming of the flash, eeprom,
 echo fuses, and lockbits.
 echo.
@@ -44,21 +44,21 @@ echo.
 echo.
 echo ******** general usage: ********
 echo.
-echo clpr_CM.bat
+echo %0
 echo.
 echo.
 echo ******** examples: ********
 echo.
-echo clpr_CM.bat
+echo %0
 echo.
 echo.
 echo ******** notes: ********
 echo.
-echo --clpr_CM.bat is designed to be called by a secondary batch file that resides in
-echo a project directory which is adjacent to the directory that clpr_CM.bat is in
+echo --%0 is designed to be called by a secondary batch file that resides in
+echo a project directory which is adjacent to the directory that %0 is in
 echo.
 echo.
 goto end
 
 :end
-echo CLPR_CM.BAT INFO: clpr_CM.bat is finished
+echo %0 INFO: %0 is finished

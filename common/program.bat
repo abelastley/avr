@@ -13,13 +13,19 @@ rem 0.95 more error handling...
 rem		exit with errors if word "failed" is anywhere in stk500 output log
 rem		tell user if stk500 failed because of a signature mismatch between elf file and actual device
 
-echo PROGRAM.BAT INFO: program.bat is starting
+echo %0 INFO: %0 is starting
 
 
 if "%1" == "" goto usage
 set progbin=%1
 set progdev=%2
 set numretries=0
+
+rem need to find the stk500.exe executable
+set stkexe=
+if exist C:\PROGRA~1\Atmel\AVRTOO~1\STK500\stk500.exe set stkexe=C:\PROGRA~1\Atmel\AVRTOO~1\STK500\stk500.exe
+if exist C:\PROGRA~2\Atmel\AVRTOO~1\STK500\stk500.exe set stkexe=C:\PROGRA~2\Atmel\AVRTOO~1\STK500\stk500.exe
+if defined stkexe (echo stkexe is %stkexe%) else (goto stkexe_not_found_error)
 
 rem this finds out what type of binary you're trying to program...
 for /f "usebackq tokens=2 delims==" %%I in (`set progbin`) do set progext=%%~xI
@@ -56,7 +62,7 @@ rem now we're left with cases 1 and 3 (user has specified device), let's branch 
 if defined elffiledev goto case3
 
 rem okay we must be in case 1
-echo PROGRAM.BAT INFO: program.bat can't tell which device elf file is signed for so using user-specified device of %progdev%
+echo %0 INFO: %0 can't tell which device elf file is signed for so using user-specified device of %progdev%
 
 set elfprogdev=%progdev%
 goto ProgramElfFile
@@ -70,8 +76,8 @@ set elfprogdev=%progdev%
 
 rem however, if the 2 devices are different, we should warn the user
 if /I "%elffiledev%" == "%progdev%" goto ProgramElfFile
-echo PROGRAM.BAT INFO: !!!WARNING!!! USER SPECIFIED DEVICE OF %progdev% BUT ELF FILE IS MEANT FOR DEVICE %elffiledev%
-echo program.bat will procede using user-specified device of %progdev%
+echo %0 INFO: !!!WARNING!!! USER SPECIFIED DEVICE OF %progdev% BUT ELF FILE IS MEANT FOR DEVICE %elffiledev%
+echo %0 will procede using user-specified device of %progdev%
 goto ProgramElfFile
 
 :case24
@@ -80,7 +86,7 @@ rem user didn't specify a device so go with whatevers in the elf file if possibl
 if not defined elffiledev goto case4
 
 rem okay we must be in case 2
-echo PROGRAM.BAT INFO: no device specified by user so using device that elf file is signed for which is %elffiledev%
+echo %0 INFO: no device specified by user so using device that elf file is signed for which is %elffiledev%
 
 set elfprogdev=%elffiledev%
 goto ProgramElfFile
@@ -88,24 +94,27 @@ goto ProgramElfFile
 :case4
 
 rem user didn't specify a device and we don't support the device read from elf file
-echo PROGRAM.BAT INFO: program.bat doesn't support the device with signature %sighex%
+echo %0 INFO: %0 doesn't support the device with signature %sighex%
 echo if you know the device name you can enter it on the cmd line
-echo for more info type program.bat with no arguments
+echo for more info type %0 with no arguments
 goto end
 
 :ProgramElfFile
 
-C:\PROGRA~1\Atmel\AVRTOO~1\STK500\stk500.exe -cUSB -d%elfprogdev% -s -e -ip%progbin% -pa -va >scratch\stkoutput.txt
+rem C:\PROGRA~1\Atmel\AVRTOO~1\STK500\stk500.exe -cUSB -d%elfprogdev% -s -e -ip%progbin% -pa -va >scratch\stkoutput.txt
+%stkexe% -cUSB -d%elfprogdev% -s -e -ip%progbin% -pa -va >scratch\stkoutput.txt
 goto errorcheck
 
 :ProgramHexFile
 
-C:\PROGRA~1\Atmel\AVRTOO~1\STK500\stk500.exe -cUSB -d%progdev% -s -e -if%progbin% -pf -vf >scratch\stkoutput.txt
+rem C:\PROGRA~1\Atmel\AVRTOO~1\STK500\stk500.exe -cUSB -d%progdev% -s -e -if%progbin% -pf -vf >scratch\stkoutput.txt
+%stkexe% -cUSB -d%progdev% -s -e -if%progbin% -pf -vf >scratch\stkoutput.txt
 goto errorcheck
 
 :ProgramEepFile
 
-C:\PROGRA~1\Atmel\AVRTOO~1\STK500\stk500.exe -cUSB -d%progdev% -s -e -ie%progbin% -pe -ve >scratch\stkoutput.txt
+rem C:\PROGRA~1\Atmel\AVRTOO~1\STK500\stk500.exe -cUSB -d%progdev% -s -e -ie%progbin% -pe -ve >scratch\stkoutput.txt
+%stkexe% -cUSB -d%progdev% -s -e -ie%progbin% -pe -ve >scratch\stkoutput.txt
 goto errorcheck
 
 :errorcheck
@@ -113,7 +122,7 @@ goto errorcheck
 grep -q "failed" scratch\stkoutput.txt
 if %ERRORLEVEL% EQU 1 goto end
 
-echo PROGRAM.BAT INFO: programming failed this time, stand by...
+echo %0 INFO: programming failed this time, stand by...
 
 grep -q "Signature verification failed" scratch\stkoutput.txt
 if %ERRORLEVEL% EQU 0 goto sigerror
@@ -125,7 +134,7 @@ goto unknownerror
 
 :sigerror
 
-echo PROGRAM.BAT ERROR: the device youre trying to program has a different signature than the elf file
+echo %0 ERROR: the device youre trying to program has a different signature than the elf file
 goto end
 
 :progmodeerror
@@ -133,7 +142,7 @@ goto end
 set /A numretries=numretries + 1
 if %numretries% GTR 3 goto unknownerror
 
-echo PROGRAM.BAT INFO: the device couldn't enter programming mode; trying a different ISP frequency...
+echo %0 INFO: the device couldn't enter programming mode; trying a different ISP frequency...
 
 call ..\common\ispfreq.bat get >scratch\ispfreqoutput.txt
 for /f "usebackq tokens=4,5 delims= " %%I in (`grep "Getting ISP frequency" scratch\ispfreqoutput.txt`) do (
@@ -148,9 +157,14 @@ if "%progext%" == ".hex" goto ProgramHexFile
 if "%progext%" == ".eep" goto ProgramEepFile
 if "%progext%" == ".elf" goto ProgramElfFile
 
+:stkexe_not_found_error
+echo %0 ERROR: cannot find the application stk500.exe
+goto end
+
+
 :unknownerror
 
-echo PROGRAM.BAT ERROR: there was an unknown error while programming the device
+echo %0 ERROR: there was an unknown error while programming the device
 goto end
 
 :usage
@@ -159,26 +173,26 @@ echo.
 echo.
 echo ***********************************************************************
 echo ********                                                       ********
-echo ********                 program.bat usage                     ********
+echo ********                 %0 usage                     ********
 echo ********                                                       ********
 echo ***********************************************************************
 echo.
 echo.
 echo ******** description: ********
 echo.
-echo program.bat will program all possible memories in an AVR device that are
+echo %0 will program all possible memories in an AVR device that are
 echo possible with the given FILE_NAME and, if specified, DEVICE_TYPE
 echo.
 echo.
 echo ******** general usage: ********
 echo.
-echo program.bat FILE_NAME [DEVICE_TYPE]
+echo %0 FILE_NAME [DEVICE_TYPE]
 echo.
 echo.
 echo ******** examples: ********
 echo.
-echo program.bat MyProject.elf
-echo program.bat MyProject.hex attiny45
+echo %0 MyProject.elf
+echo %0 MyProject.hex attiny45
 echo.
 echo.
 echo ******** notes: ********
@@ -189,4 +203,4 @@ echo.
 goto end
 
 :end
-echo PROGRAM.BAT INFO: program.bat is finished
+echo %0 INFO: %0 is finished
